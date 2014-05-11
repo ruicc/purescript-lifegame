@@ -1,4 +1,4 @@
-purescript project skeleton
+purescript-lifegame
 ===========
 
 Build
