@@ -9,6 +9,7 @@
 :m bower_components/purescript-exceptions/src/Control/Monad/Eff/Exception.purs
 :m bower_components/purescript-foldable-traversable/src/Data/Foldable.purs
 :m bower_components/purescript-foldable-traversable/src/Data/Traversable.purs
+:m bower_components/purescript-foreign/src/Data/Foreign.purs
 :m bower_components/purescript-math/src/Math.purs
 :m bower_components/purescript-maybe/src/Data/Maybe.purs
 :m bower_components/purescript-monoid/src/Data/Monoid.purs
@@ -24,3 +25,5 @@
 :m bower_components/purescript-quickcheck/src/Test/QuickCheck/LCG.purs
 :m bower_components/purescript-random/src/Control/Monad/Eff/Random.purs
 :m bower_components/purescript-tuples/src/Data/Tuple.purs
+:m bower_components/purescript-canvas/src/Graphics/Canvas.purs.hs
+:m bower_components/purescript-jquery/src/Control/Monad/JQuery.purs.hs

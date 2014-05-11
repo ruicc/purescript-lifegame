@@ -13,7 +13,9 @@
   "dependencies": {
     "purescript-arrays"               : "*",
     "purescript-maybe"                : "*",
-    "purescript-foldable-traversable" : "*"
+    "purescript-foldable-traversable" : "*",
+    "purescript-jquery"               : "*",
+    "purescript-canvas"               : "*"
   },
   "devDependencies": {
     "purescript-math"                 : "*",
