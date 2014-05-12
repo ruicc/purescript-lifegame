@@ -11,6 +11,7 @@
     "tmp"
   ],
   "dependencies": {
+    "purescript-foreign"              : "*",
     "purescript-arrays"               : "*",
     "purescript-maybe"                : "*",
     "purescript-foldable-traversable" : "*",
