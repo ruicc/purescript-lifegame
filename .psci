@@ -1,4 +1,3 @@
-:m src/Foo.purs
 :m src/Main.purs
 :m bower_components/purescript-arrays/src/Data/Array.purs
 :m bower_components/purescript-arrays/src/Data/Array/Unsafe.purs
@@ -27,3 +26,4 @@
 :m bower_components/purescript-tuples/src/Data/Tuple.purs
 :m bower_components/purescript-canvas/src/Graphics/Canvas.purs.hs
 :m bower_components/purescript-jquery/src/Control/Monad/JQuery.purs.hs
+:i Control.Monad.Eff.Random

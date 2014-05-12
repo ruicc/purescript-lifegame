@@ -597,14 +597,6 @@ PS.Math = (function () {
     };
 })();
 var PS = PS || {};
-PS.Foo = (function () {
-    "use strict";
-    var foo = "aaa";
-    return {
-        foo: foo
-    };
-})();
-var PS = PS || {};
 PS.Data_Maybe = (function () {
     "use strict";
     var Prelude = PS.Prelude;
@@ -3793,27 +3785,53 @@ PS.Main = (function () {
     "use strict";
     var Prelude = PS.Prelude;
     var Control_Monad_Eff = PS.Control_Monad_Eff;
+    var Control_Monad_Eff_Random = PS.Control_Monad_Eff_Random;
+    var Math = PS.Math;
     function onload(f) {  return function() {    window.onload = f;  };};
     function setGlobalVars() {     window.SCREEN_SIZE = 500;      window.SIDE_CELLS = 100;      window.CELL_SIZE = SCREEN_SIZE / SIDE_CELLS;  };
     function startLifegame(fps) {  return function(field) {    return function(update) {      return function(draw) {        return function() {            var next = update(field)();            draw(next)();            setTimeout(startLifegame(fps)(next)(update)(draw), 1000/fps);        };      };    };  };};
-    function update(field) {  return function() {    var n = 0;      var tempField = field.slice();      for (var i=0; i<tempField.length; i++) {       n = 0;       for (var s=-1; s<2; s++) {         for (var t=-1; t<2; t++) {           if (s==0 && t==0) continue;            var c = i+s*SIDE_CELLS+t;            if (c>=0 && c<tempField.length) {              if (i<c && c%SIDE_CELLS!=0 || i>c && c%SIDE_CELLS!=SIDE_CELLS-1) {                if (tempField[c]) n ++;              }           }         }       }       if (tempField[i] && (n==2||n==3)) {          field[i] = 1;        } else if (!tempField[i] && n==3) {          field[i] = 1;        } else field[i] = 0;      }     return field;  }; };
-    function draw(context) {   return function(field) {     return function() {      context.clearRect(0, 0, SCREEN_SIZE, SCREEN_SIZE);       for (var i=0; i<field.length; i++) {         var x = (i%SIDE_CELLS)*CELL_SIZE;         var y = Math.floor((i/SIDE_CELLS))*CELL_SIZE;         if (field[i]) context.fillRect(x, y, CELL_SIZE, CELL_SIZE);       }     };   }; };
-    function getContext() {  var canvas = document.getElementById('world');    canvas.width = canvas.height = SCREEN_SIZE;    var scaleRate = Math.min(window.innerHeight/SCREEN_SIZE, window.innerHeight/SCREEN_SIZE);    canvas.style.width = canvas.style.height = SCREEN_SIZE*scaleRate+'px';    var context = canvas.getContext('2d');    context.fillStyle = 'rgb(211, 85, 149)';    return context; };
-    function createField(h) {  return function(w) {    return function() {      var field = new Array(h * w);        for (var i=0; i<field.length; i++) field[i] = Math.floor(Math.random()*2);        return field;    };  };};
+    function update(field) {  return function() {    var cells = field.cells;    var n = 0;    var tempField = cells.slice();    for (var i=0; i<tempField.length; i++) {      n = 0;      for (var s=-1; s<2; s++) {        for (var t=-1; t<2; t++) {          if (s==0 && t==0) continue;          var c = i+s*SIDE_CELLS+t;          if (c>=0 && c<tempField.length) {            if (i<c && c%SIDE_CELLS!=0 || i>c && c%SIDE_CELLS!=SIDE_CELLS-1) {              if (tempField[c]) n ++;            }          }        }      }      if (tempField[i] && (n==2||n==3)) {        cells[i] = 1;      } else if (!tempField[i] && n==3) {        cells[i] = 1;      } else cells[i] = 0;    }    field.cells = cells;    return field;  };};
+    function draw(context) {  return function(field) {    return function() {      var cells = field.cells;      context.clearRect(0, 0, SCREEN_SIZE, SCREEN_SIZE);      for (var i=0; i<cells.length; i++) {        var x = (i%SIDE_CELLS)*CELL_SIZE;        var y = Math.floor((i/SIDE_CELLS))*CELL_SIZE;        if (cells[i]) context.fillRect(x, y, CELL_SIZE, CELL_SIZE);      }    };  };};
+    function getContext(elementId) {  return function(screenSize) {    return function() {      var canvas = document.getElementById(elementId);        canvas.width = canvas.height = SCREEN_SIZE;        var scaleRate = Math.min(screenSize.height/SCREEN_SIZE, screenSize.width/SCREEN_SIZE);        canvas.style.width = canvas.style.height = SCREEN_SIZE*scaleRate+'px';        var context = canvas.getContext('2d');        context.fillStyle = 'rgb(211, 85, 149)';        return context;     };   }; };
+    function getScreenSize() {  return { height: window.innerHeight, width: window.innerWidth };};
+    function makeRandomArray(initializer) {  return function(n) {    return function() {        var field = new Array(n);          for (var i=0; i<field.length; i++) field[i] = initializer();          return field;    };  };};
+    var createField = function (h) {
+        return function (w) {
+            var initializer = function __do() {
+                var _1 = Control_Monad_Eff_Random.random();
+                return Math.floor(_1 * 2);
+            };
+            return function __do() {
+                var _1 = makeRandomArray(initializer)(h * w)();
+                return {
+                    height: h, 
+                    width: w, 
+                    cells: _1
+                };
+            };
+        };
+    };
     var main = onload(function __do() {
         setGlobalVars();
-        var _1 = getContext();
+        var _1 = getScreenSize();
         return (function (_2) {
+            var screen = _2;
             return function __do() {
-                var _1 = createField(100)(100)();
-                draw(_2)(_1)();
-                return startLifegame(2)(_1)(update)(draw(_2))();
+                var _1 = getContext("world")(screen)();
+                return (function (_2) {
+                    return function __do() {
+                        var _1 = createField(100)(100)();
+                        return startLifegame(10)(_1)(update)(draw(_2))();
+                    };
+                })(_1)();
             };
         })(_1)();
     });
     return {
         main: main, 
         createField: createField, 
+        makeRandomArray: makeRandomArray, 
+        getScreenSize: getScreenSize, 
         getContext: getContext, 
         draw: draw, 
         update: update, 
