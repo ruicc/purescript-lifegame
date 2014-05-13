@@ -25,6 +25,13 @@ foreign import onload
     \  };\
     \}" :: forall e a. Eff e a -> Eff e {}
 
+foreign import after
+    "function after(n) {\
+    \  return function(f) {\
+    \    window.setTimeout(f, n);\ 
+    \  };\
+    \}" :: forall e a. Number -> Eff e a -> Eff e {}
+
 foreign import setGlobalVars
     "function setGlobalVars() { \
     \    window.SCREEN_SIZE = 500;  \
@@ -32,24 +39,16 @@ foreign import setGlobalVars
     \    window.CELL_SIZE = SCREEN_SIZE / SIDE_CELLS;  \
     \}" :: forall e. Eff e {}
 
-foreign import startLifegame
-    "function startLifegame(fps) {\
-    \  return function(field) {\
-    \    return function(update) {\
-    \      return function(draw) {\
-    \        return function() {\
-    \            var next = update(field)();\
-    \            draw(next)();\
-    \            setTimeout(startLifegame(fps)(next)(update)(draw), 1000/fps);\
-    \        };\
-    \      };\
-    \    };\
-    \  };\
-    \}" :: forall e. FPS -> Field -> (Field -> Field) -> (Field -> Eff e {}) -> Eff e {}
+startLifegame :: forall e. FPS -> Field -> (Field -> Field) -> (Field -> Eff e {}) -> Eff e {}
+startLifegame fps field update draw = loop field
+  where
+  loop field = do
+    let next = update field
+    draw next
+    after (1000 / fps) (loop next)
 
 foreign import update
     "function update(field) {\
-    \  return function() {\
     \    var cells = field.cells;\
     \    var n = 0;\
     \    var tempField = cells.slice();\
@@ -74,7 +73,6 @@ foreign import update
     \    }\
     \    field.cells = cells;\
     \    return field;\
-    \  };\
     \}" :: Field -> Field
 
 foreign import draw
