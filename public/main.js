@@ -3788,13 +3788,29 @@ PS.Main = (function () {
     var Control_Monad_Eff_Random = PS.Control_Monad_Eff_Random;
     var Math = PS.Math;
     function onload(f) {  return function() {    window.onload = f;  };};
+    function after(n) {  return function(f) {    return function() {      window.setTimeout(f, n);    };  };};
     function setGlobalVars() {     window.SCREEN_SIZE = 500;      window.SIDE_CELLS = 100;      window.CELL_SIZE = SCREEN_SIZE / SIDE_CELLS;  };
-    function startLifegame(fps) {  return function(field) {    return function(update) {      return function(draw) {        return function() {            var next = update(field)();            draw(next)();            setTimeout(startLifegame(fps)(next)(update)(draw), 1000/fps);        };      };    };  };};
-    function update(field) {  return function() {    var cells = field.cells;    var n = 0;    var tempField = cells.slice();    for (var i=0; i<tempField.length; i++) {      n = 0;      for (var s=-1; s<2; s++) {        for (var t=-1; t<2; t++) {          if (s==0 && t==0) continue;          var c = i+s*SIDE_CELLS+t;          if (c>=0 && c<tempField.length) {            if (i<c && c%SIDE_CELLS!=0 || i>c && c%SIDE_CELLS!=SIDE_CELLS-1) {              if (tempField[c]) n ++;            }          }        }      }      if (tempField[i] && (n==2||n==3)) {        cells[i] = 1;      } else if (!tempField[i] && n==3) {        cells[i] = 1;      } else cells[i] = 0;    }    field.cells = cells;    return field;  };};
+    function update(field) {    var cells = field.cells;    var n = 0;    var tempField = cells.slice();    for (var i=0; i<tempField.length; i++) {      n = 0;      for (var s=-1; s<2; s++) {        for (var t=-1; t<2; t++) {          if (s==0 && t==0) continue;          var c = i+s*SIDE_CELLS+t;          if (c>=0 && c<tempField.length) {            if (i<c && c%SIDE_CELLS!=0 || i>c && c%SIDE_CELLS!=SIDE_CELLS-1) {              if (tempField[c]) n ++;            }          }        }      }      if (tempField[i] && (n==2||n==3)) {        cells[i] = 1;      } else if (!tempField[i] && n==3) {        cells[i] = 1;      } else cells[i] = 0;    }    field.cells = cells;    return field;};
     function draw(context) {  return function(field) {    return function() {      var cells = field.cells;      context.clearRect(0, 0, SCREEN_SIZE, SCREEN_SIZE);      for (var i=0; i<cells.length; i++) {        var x = (i%SIDE_CELLS)*CELL_SIZE;        var y = Math.floor((i/SIDE_CELLS))*CELL_SIZE;        if (cells[i]) context.fillRect(x, y, CELL_SIZE, CELL_SIZE);      }    };  };};
     function getContext(elementId) {  return function(screenSize) {    return function() {      var canvas = document.getElementById(elementId);        canvas.width = canvas.height = SCREEN_SIZE;        var scaleRate = Math.min(screenSize.height/SCREEN_SIZE, screenSize.width/SCREEN_SIZE);        canvas.style.width = canvas.style.height = SCREEN_SIZE*scaleRate+'px';        var context = canvas.getContext('2d');        context.fillStyle = 'rgb(211, 85, 149)';        return context;     };   }; };
     function getScreenSize() {  return { height: window.innerHeight, width: window.innerWidth };};
     function makeRandomArray(initializer) {  return function(n) {    return function() {        var field = new Array(n);          for (var i=0; i<field.length; i++) field[i] = initializer();          return field;    };  };};
+    var startLifegame = function (fps) {
+        return function (field) {
+            return function (update) {
+                return function (draw) {
+                    var loop = function (field) {
+                        var next = update(field);
+                        return function __do() {
+                            draw(next)();
+                            return after(1000 / fps)(loop(next))();
+                        };
+                    };
+                    return loop(field);
+                };
+            };
+        };
+    };
     var createField = function (h) {
         return function (w) {
             var initializer = function __do() {
@@ -3837,6 +3853,7 @@ PS.Main = (function () {
         update: update, 
         startLifegame: startLifegame, 
         setGlobalVars: setGlobalVars, 
+        after: after, 
         onload: onload
     };
 })();

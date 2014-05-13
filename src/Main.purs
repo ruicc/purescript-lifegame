@@ -28,7 +28,9 @@ foreign import onload
 foreign import after
     "function after(n) {\
     \  return function(f) {\
-    \    window.setTimeout(f, n);\ 
+    \    return function() {\
+    \      window.setTimeout(f, n);\ 
+    \    };\
     \  };\
     \}" :: forall e a. Number -> Eff e a -> Eff e {}
 
